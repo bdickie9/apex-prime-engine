@@ -19,11 +19,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate benchmark entry point
+        shell: bash
         run: |
           if [ ! -f ci/perf.sh ]; then
             echo "::error::Missing ci/perf.sh. Restore the actual benchmark before running performance CI."
+            echo "Recovery evidence and required source: docs/performance-recovery.md"
             exit 1
           fi
+          if [ ! -s ci/perf.sh ]; then
+            echo "::error::Empty ci/perf.sh. Restore the actual benchmark; an empty script cannot establish performance."
+            exit 1
+          fi
+          bash -n ci/perf.sh
 
       - name: Configure AWS credentials (OIDC)
         if: ${{ env.AWS_ROLE_ARN != '' }}
@@ -55,3 +62,4 @@ jobs:
           name: perf-report
           path: perf-output/**
           if-no-files-found: error
+          retention-days: 1
